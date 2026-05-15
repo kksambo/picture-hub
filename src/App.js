@@ -51,7 +51,7 @@ export default function App() {
   const closeViewer = () => setViewerOpen(false);
 
   /* =========================
-     SWIPE NAVIGATION (FIXED)
+     SWIPE NAVIGATION (SAFE)
   ========================== */
   const next = useCallback(() => {
     setIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
@@ -78,7 +78,7 @@ export default function App() {
   }, [viewerOpen, next, prev]);
 
   /* =========================
-     TOUCH SWIPE SUPPORT (FIXED)
+     TOUCH SWIPE SUPPORT
   ========================== */
   const handleTouchStart = (e) => {
     startY.current = e.touches[0].clientY;
@@ -96,7 +96,7 @@ export default function App() {
       <h1 style={styles.title}>📸 PictureHub</h1>
 
       {/* =========================
-          LOGIN
+          LOGIN SCREEN
       ========================== */}
       {!viewerOpen && images.length === 0 && (
         <div style={styles.lockBox}>
@@ -123,7 +123,7 @@ export default function App() {
         <div style={styles.grid}>
           {images.map((img, i) => (
             <div key={i} style={styles.card} onClick={() => openViewer(i)}>
-              <img src={img} style={styles.image} alt={`Picture ${i}`} />
+              <img src={img} style={styles.image} alt={`Gallery item ${i}`} />
             </div>
           ))}
         </div>
@@ -149,10 +149,10 @@ export default function App() {
           <img
             src={images[index]}
             style={styles.fullImage}
-            alt={`Full view ${index}`}
+            alt={`Gallery item ${index}`}
           />
 
-          <div style={styles.hint}>Swipe ↑ ↓ or use arrows</div>
+          <div style={styles.hint}>Swipe ↑ ↓ or use arrow keys</div>
         </div>
       )}
     </div>
