@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import CryptoJS from "crypto-js";
 
 /*
@@ -18,6 +18,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [viewerOpen, setViewerOpen] = useState(false);
   const [index, setIndex] = useState(0);
+
+  const startY = useRef(0);
 
   const unlock = () => {
     try {
@@ -48,16 +50,19 @@ export default function App() {
 
   const closeViewer = () => setViewerOpen(false);
 
-  const next = () => {
+  /* =========================
+     SWIPE NAVIGATION (FIXED)
+  ========================== */
+  const next = useCallback(() => {
     setIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
+  }, [images.length]);
 
-  const prev = () => {
+  const prev = useCallback(() => {
     setIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
+  }, [images.length]);
 
   /* =========================
-     KEYBOARD SWIPE SUPPORT
+     KEYBOARD SUPPORT
   ========================== */
   useEffect(() => {
     const handleKey = (e) => {
@@ -70,28 +75,29 @@ export default function App() {
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [viewerOpen, images]);
+  }, [viewerOpen, next, prev]);
 
   /* =========================
-     TOUCH SWIPE SUPPORT
+     TOUCH SWIPE SUPPORT (FIXED)
   ========================== */
-  let startY = 0;
-
   const handleTouchStart = (e) => {
-    startY = e.touches[0].clientY;
+    startY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e) => {
     const endY = e.changedTouches[0].clientY;
 
-    if (startY - endY > 50) next(); // swipe up
-    if (endY - startY > 50) prev(); // swipe down
+    if (startY.current - endY > 50) next();
+    if (endY - startY.current > 50) prev();
   };
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>PictureHub</h1>
+      <h1 style={styles.title}>📸 PictureHub</h1>
 
+      {/* =========================
+          LOGIN
+      ========================== */}
       {!viewerOpen && images.length === 0 && (
         <div style={styles.lockBox}>
           <input
@@ -106,7 +112,7 @@ export default function App() {
             Unlock Gallery
           </button>
 
-          {error && <p style={{ color: "#f87171" }}>{error}</p>}
+          {error && <p style={{ color: "#f87171", marginTop: 10 }}>{error}</p>}
         </div>
       )}
 
@@ -117,7 +123,7 @@ export default function App() {
         <div style={styles.grid}>
           {images.map((img, i) => (
             <div key={i} style={styles.card} onClick={() => openViewer(i)}>
-              <img src={img} style={styles.image} />
+              <img src={img} style={styles.image} alt={`Picture ${i}`} />
             </div>
           ))}
         </div>
@@ -140,9 +146,12 @@ export default function App() {
             {index + 1} / {images.length}
           </div>
 
-          <img src={images[index]} style={styles.fullImage} />
+          <img
+            src={images[index]}
+            style={styles.fullImage}
+            alt={`Full view ${index}`}
+          />
 
-          {/* swipe hint */}
           <div style={styles.hint}>Swipe ↑ ↓ or use arrows</div>
         </div>
       )}
@@ -169,8 +178,8 @@ const styles = {
     marginBottom: "24px",
     fontWeight: "900",
     letterSpacing: "-1px",
-    fontFamily: "'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif",
-    background: "linear-gradient(90deg, #6366f1, #a855f7, #22d3ee)",
+    fontFamily: "'Inter','Segoe UI','Roboto','Helvetica Neue',sans-serif",
+    background: "linear-gradient(90deg,#6366f1,#a855f7,#22d3ee)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     textShadow: "0 10px 30px rgba(99,102,241,0.15)",
@@ -209,16 +218,15 @@ const styles = {
     borderRadius: 16,
     overflow: "hidden",
     cursor: "pointer",
-    transition: "0.3s",
   },
 
   image: {
     width: "100%",
     height: 220,
     objectFit: "cover",
+    display: "block",
   },
 
-  /* FULLSCREEN SWIPE VIEW */
   viewer: {
     position: "fixed",
     inset: 0,
@@ -233,7 +241,6 @@ const styles = {
     maxHeight: "85vh",
     maxWidth: "95vw",
     borderRadius: 16,
-    transition: "0.3s",
   },
 
   close: {
